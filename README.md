@@ -16,9 +16,9 @@ pip3 install pymillheat
 
 # Example
 ```py
-import millheat
+import pymillheat
 
-mill = millheat.Mill(
+mill = pymillheat.Mill(
     access_key="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     secret_token="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     username="example@email.com",
