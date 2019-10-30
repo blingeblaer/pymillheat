@@ -50,5 +50,3 @@ mill.temperature_control_device(device_id, status, hold_temp=None, retry=1)
 
 mill.close_connection()
 ```
-
-Thanks to https://github.com/Danielhiversen for inspiration code-wise.
