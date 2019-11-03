@@ -4,7 +4,6 @@ import asyncio
 import aiohttp
 import logging
 import urllib3
-import requests
 import async_timeout
 
 from .errors import ApplyAuthCode, MillHeatSystem, MillHeatUds, AccessToken, RefreshToken, DeviceControlForOpenApi
