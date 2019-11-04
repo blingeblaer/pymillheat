@@ -1,13 +1,13 @@
-from setuptools import setup
+import setuptools
 
 def readme():
     with open("README.md") as f:
         README = f.read()
     return README
 
-setup(
+setuptools.setup(
     name="pymillheat",
-    version="1.0.1",
+    version="1.0.3",
     url="https://github.com/Erlendeikeland/pymillheat",
     author="Erlendeikeland",
     description="Library for interacting with millheat api",
@@ -17,7 +17,7 @@ setup(
     python_requires=">=3.5.3",
     author_email="Erlend132@gmail.com",
     install_requires=["aiohttp", "async_timeout", "urllib3"],
-    packages=["millheat"],
+    packages=setuptools.find_packages(),
     classifiers=[
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
