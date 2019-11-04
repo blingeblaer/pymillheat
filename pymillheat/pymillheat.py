@@ -34,7 +34,7 @@ class Mill:
         self._device_list = []
         self._independent_device_list = []
 
-    async def _open_connection(self):
+    async def open_connection(self):
         """Connect to API."""
         headers = {
             "accept" : "*/*",
@@ -59,7 +59,6 @@ class Mill:
         )
         end_url = "/share/applyAccessToken"
         response = await self.execute(end_url, headers, params)
-        print(response)
         if not response:
             LOGGER.error("Invalid response from API.")
             return False
@@ -74,12 +73,6 @@ class Mill:
         self._access_token = response["data"]["access_token"]
         self._refresh_token = response["data"]["refresh_token"]
         return True
-
-    def open_connection(self):
-        """Connect to API."""
-        task = self.loop.create_task(self._open_connection())
-        self.loop.run_until_complete(task)
-        return task.result()
 
     @property
     def access_token(self):
@@ -96,17 +89,11 @@ class Mill:
         """Get refresh token."""
         return self._refresh_token
 
-    async def _close_connection(self):
+    async def close_connection(self):
         """Close connection to API."""
         await self.websession.close()
 
-    def close_connection(self):
-        """Close connection to API."""
-        task = self.loop.create_task(self._close_connection())
-        self.loop.run_until_complete(task)
-        return task.result()
-
-    async def _update_access_token(self):
+    async def refresh_access_token(self):
         """Get new access and refresh token."""
         headers = {
             "accept": "*/*",
@@ -121,11 +108,6 @@ class Mill:
         self._access_token = response["data"]["access_token"]
         self._refresh_token = response["data"]["refresh_token"]
         return True
-
-    def update_access_token(self):
-        """Get new access and refresh token."""
-        task = self.loop.create_task(self._update_access_token())
-        self.loop.run_until_complete(task)
 
     async def execute(self, end_url, headers, params=None):
         """Execute API call."""
@@ -152,7 +134,7 @@ class Mill:
                 raise DeviceControlForOpenApi("304, cannot find device info")
             if response.get("errorCode") == 999:
                 LOGGER.error("999, refreshing token.")
-                self.update_access_token()
+                self.refresh_access_token()
                 return response
             else:
                 return response
@@ -166,7 +148,7 @@ class Mill:
             LOGGER.error("403, Forbidden")
             return response
 
-    async def _get_home_list(self):
+    async def get_home_list(self):
         """Get information about homes."""
         headers = {
             "accept": "*/*",
@@ -181,12 +163,6 @@ class Mill:
             if not any(d["homeName"] == i["homeName"] for d in self._home_list):
                 self._home_list.append(i)
 
-    def get_home_list(self):
-        """Get information about homes."""
-        task = self.loop.create_task(self._get_home_list())
-        self.loop.run_until_complete(task)
-        return task.result()
-
     @property
     def homes_information(self):
         """Get information about homes"""
@@ -195,7 +171,7 @@ class Mill:
             return False
         return self._home_list
 
-    async def _get_room_by_home(self, home_id):
+    async def get_room_by_home(self, home_id):
         """Get information about rooms in specific home."""
         headers = {
             "accept": "*/*",
@@ -213,15 +189,6 @@ class Mill:
             if not any(d["roomId"] == i["roomId"] for d in self._room_list):
                 self._room_list.append(i)
 
-    def get_room_by_home(self, home_id=None):
-        """Get information about rooms in specific home."""
-        if not home_id:
-            LOGGER.error("Cant execute 'get_room_by_home()' without 'home_id' parameter.")
-            return False
-        task = self.loop.create_task(self._get_room_by_home(home_id))
-        self.loop.run_until_complete(task)
-        return task.result()
-
     @property
     def rooms_information(self):
         """Get information about rooms in specific home."""
@@ -230,7 +197,7 @@ class Mill:
             return self._room_list
         return self._room_list
 
-    async def _get_device_by_room(self, room_id):
+    async def get_device_by_room(self, room_id):
         """Get information about devices in specific room."""
         headers = {
             "accept": "*/*",
@@ -248,15 +215,6 @@ class Mill:
             if not any(d["deviceId"] == i["deviceId"] for d in self._device_list):
                 self._device_list.append(i)
 
-    def get_device_by_room(self, room_id=None):
-        """Get information about devices in specific room."""
-        if not room_id:
-            LOGGER.error("Cant execute 'get_device_by_room()' without 'room_id' parameter.")
-            return False
-        task = self.loop.create_task(self._get_device_by_room(room_id))
-        self.loop.run_until_complete(task)
-        return task.result()
-
     @property
     def devices_information(self):
         """Get information about devices in specific room."""
@@ -265,7 +223,7 @@ class Mill:
             return self._device_list
         return self._device_list
 
-    async def _get_independent_devices(self, home_id):
+    async def get_independent_devices(self, home_id):
         """Get information about independent devices in specific home."""
         headers = {
             "accept": "*/*",
@@ -283,15 +241,6 @@ class Mill:
             if not any(d["deviceId"] == i["deviceId"] for d in self._independent_device_list):
                 self._independent_device_list.append(i)
 
-    def get_independent_devices(self, home_id=None):
-        """Get information about independent devices in specific home."""
-        if not home_id:
-            LOGGER.error("Cant execute 'get_device_by_room()' without 'room_id' parameter.")
-            return False
-        task = self.loop.create_task(self._get_independent_devices(home_id))
-        self.loop.run_until_complete(task)
-        return task.result()
-
     @property
     def independent_devices_information(self):
         """Get information about independent devices in specific home."""
@@ -300,7 +249,7 @@ class Mill:
             return self._independent_device_list
         return self._independent_device_list
 
-    async def _switch_control_device(self, device_id, status, retry):
+    async def switch_control_device(self, device_id, status, retry=1):
         """Control specific device."""
         headers = {
             "accept": "*/*",
@@ -318,17 +267,11 @@ class Mill:
             return False
         if not response.get("errorCode") == 0:
             if retry > 1:
-                await self._switch_control_device(device_id, status, retry-1)
+                await self.switch_control_device(device_id, status, retry-1)
         else:
             return response
 
-    def switch_control_device(self, device_id, status, retry=1):
-        """Control specific device."""
-        task = self.loop.create_task(self._switch_control_device(device_id, status, retry))
-        self.loop.run_until_complete(task)
-        return task.result()
-
-    async def _temperature_control_device(self, device_id, status, retry, hold_temp=None):
+    async def temperature_control_device(self, device_id, status, retry=1, hold_temp=None):
         """Control specific device."""
         headers = {
             "accept": "*/*",
@@ -351,12 +294,6 @@ class Mill:
             return False
         if not response.get("errorCode") == 0:
             if retry > 1:
-                await self._temperature_control_device(device_id, status, retry-1, hold_temp=None)
+                await self.temperature_control_device(device_id, status, retry-1, hold_temp=None)
         else:
             return response
-
-    def temperature_control_device(self, device_id, status, hold_temp=None, retry=1):
-        """Control specific device."""
-        task = self.loop.create_task(self._temperature_control_device(device_id, status, retry, hold_temp=None))
-        self.loop.run_until_complete(task)
-        return task.result()
