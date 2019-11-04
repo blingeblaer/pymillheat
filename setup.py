@@ -7,7 +7,7 @@ def readme():
 
 setuptools.setup(
     name="pymillheat",
-    version="1.0.3",
+    version="1.0.4",
     url="https://github.com/Erlendeikeland/pymillheat",
     author="Erlendeikeland",
     description="Library for interacting with millheat api",
